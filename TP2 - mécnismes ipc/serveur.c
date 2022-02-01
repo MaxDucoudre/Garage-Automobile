@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 		printf("SERVEUR - Attend requête\n");
 		nb_lus = msgrcv(file_mess, (void*) &requete, sizeof(requete)-sizeof(long int), 1, 0); // bloquant
 
-		printf("SERVEUR - Requête reçue  : %d\n", nb_lus);
+		printf("SERVEUR - Requête reçue  : %ld\n", nb_lus);
 
 
 		assert( nb_lus != -1);

@@ -27,16 +27,15 @@ int isNumber(char string[])
 
 // fonction permettant de mettre fin au programme proprement
 void endGarage() {
-
 	// enlever processus & IPC
 	// Finir le travail si un travail est en cours (ne pas interrompre mécanicien & chef d'atelier)
-	
 
 	printf("\nFin du programme : fermeture du garage!\n");
 	exit(EXIT_SUCCESS);
 }
 
 
+// LE GARAGE
 int main(int argc, char *argv[])
 {
 
@@ -86,10 +85,16 @@ int main(int argc, char *argv[])
 	int nb_4 = strtol(argv[6], NULL, 0);
 
 	// Signal de fin du programme
-	signal(SIGINT, endGarage); // le programme vas se fermer à la recéption du signal SIGINT
+	signal(SIGINT, endGarage); // le programme vas lancer la fonction endGarage à la récéption du signal SIGINT (CTRL+C)
 
 
 	printf("Début du garage...\n");
+
+	// Création des objets IPC nécéssaires
+
+	
+
+	// Création des processus de chef d'atelier
 
 
 	// Création des processus mécanicien
@@ -105,9 +110,12 @@ int main(int argc, char *argv[])
 	}
 
 
+
+
+
 	while(1) { 
 
-
+		// Création "infinie" de clients (prévoir de laisser un temps d'interval)
 
 	}
 

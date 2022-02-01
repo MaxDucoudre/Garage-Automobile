@@ -12,4 +12,9 @@ int main(int argc, char *argv[])
 	}
 
 
+
+
+
+	// Contact le chef d'atelier le moins occupé
+
 }
