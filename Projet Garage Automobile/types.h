@@ -19,7 +19,7 @@ typedef struct
 reponse_ordre;
 
 
-#define FICHIER_CLE "cle.serv"
+#define FICHIER_CLE "./files_cle/cle.serv_"
 
 
 

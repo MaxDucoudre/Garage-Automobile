@@ -40,6 +40,12 @@ int isNumber(char string[])
 }
 
 
+
+void eraseCleFiles() {
+
+	system("rm -rf ./files_cle/cle.serv_*");
+}
+
 // fonction permettant de mettre fin au programme proprement
 void endGarage() {
 	// enlever processus & IPC
@@ -47,12 +53,19 @@ void endGarage() {
 
 	
 
-	// suppression des fichiers générées
+	// Suppression des fichiers de clé générées :
+	eraseCleFiles();
+
+
+
+	
 	
 
 	printf("\nFin du programme : fermeture du garage!\n");
 	exit(EXIT_SUCCESS);
 }
+
+
 
 
 
@@ -122,13 +135,16 @@ int main(int argc, char *argv[])
 	int file_mess;
 	FILE *fp;
 	char buffer[2];
-	char fichier_cle[20];
-	char command_create_file[30];
+	char fichier_cle[40];
+	char command_create_file[40];
 	nb_file = nb_chefs;
+
+
+	// On s'assure que la précédente fermeture s'est bien passée :
+	eraseCleFiles();
 
 	for(i = 0; i<nb_chefs; i++) 
 	{
-
 		// Création de fichier pour stocker les clés des objets IPC
 		sprintf(buffer, "%d", i);
 		strcat(strcpy(fichier_cle, FICHIER_CLE), buffer);
