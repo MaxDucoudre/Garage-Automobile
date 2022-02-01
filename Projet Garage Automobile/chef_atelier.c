@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
 
 		// Attend/reçoit requête d'un client
 
-
 		// Envoi requête au mécanicien (durée & outils nécéssaires dans chaque catégories)
 
 		// attente de la fin du travail du mécanicien

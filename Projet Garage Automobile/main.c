@@ -1,13 +1,28 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <assert.h>
+
 #include <sys/wait.h>
 #include <ctype.h>
+
+
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <signal.h>
+#include <assert.h>
+#include "types.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
 
 #define R 0 
 #define W 1
 
+int nb_file;
 
 // Fonction pour vérifier si une chaine de caractère contient bien un nombre
 // return 1 si oui, 0 si non
@@ -30,9 +45,17 @@ void endGarage() {
 	// enlever processus & IPC
 	// Finir le travail si un travail est en cours (ne pas interrompre mécanicien & chef d'atelier)
 
+	
+
+	// suppression des fichiers générées
+	
+
 	printf("\nFin du programme : fermeture du garage!\n");
 	exit(EXIT_SUCCESS);
 }
+
+
+
 
 
 // LE GARAGE
@@ -76,6 +99,8 @@ int main(int argc, char *argv[])
 	}
 	// FIN VERIFICATION A LA LIGNE DE COMMANDE
 
+
+
 	// Conversion des arguments de chaînes de caractère vers des entiers
 	int nb_chefs = strtol(argv[1], NULL, 0);
 	int nb_mecanicien = strtol(argv[2], NULL, 0);
@@ -88,26 +113,55 @@ int main(int argc, char *argv[])
 	signal(SIGINT, endGarage); // le programme vas lancer la fonction endGarage à la récéption du signal SIGINT (CTRL+C)
 
 
-	printf("Début du garage...\n");
+	printf("GARAGE - Début du garage...\n");
+
+
 
 	// Création des objets IPC nécéssaires
+	key_t cle ;
+	int file_mess;
+	FILE *fp;
+	char buffer[2];
+	char fichier_cle[20];
+	char command_create_file[30];
+	nb_file = nb_chefs;
+
+	for(i = 0; i<nb_chefs; i++) 
+	{
+
+		// Création de fichier pour stocker les clés des objets IPC
+		sprintf(buffer, "%d", i);
+		strcat(strcpy(fichier_cle, FICHIER_CLE), buffer);
+		printf("%s\n", fichier_cle);
+
+
+		strcat(strcpy(command_create_file, "touch "), fichier_cle);
+		system(command_create_file); // J'utilise la commande touch pour créer les fichiers nécéssaires
+
+
+		
+		// Génération d'une clé
+		cle = ftok(fichier_cle, 'a');
+		printf("GARAGE - cle : %d générée!\n", cle);
+
+
+		// Création des objets IPC avec la clé générée
+		file_mess = msgget(cle, IPC_CREAT|0600);
+		printf("GARAGE - File de message : %d générée!\n", file_mess);
+
+
+
+
+	}
 
 	
 
 	// Création des processus de chef d'atelier
 
 
+
 	// Création des processus mécanicien
-	pid_t pid_mecanicien = fork();
-	if(pid_mecanicien > 0) 
-	{
-
-		for(i = 0; i < nb_mecanicien; i++) 
-		{
-
-		}
-		
-	}
+	
 
 
 

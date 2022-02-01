@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int isWorking;
+#include <sys/wait.h>
+#include <ctype.h>
+#include <unistd.h>
 
 
 
@@ -11,7 +13,6 @@ void endMecanicien() {
 
 	printf("\nFin du mécanicien\n");
 
-	while()
 	exit(EXIT_SUCCESS);
 }
 
@@ -20,7 +21,6 @@ int main(int argc, char *argv[])
 {
 	int numero_ordre;
 
-	isWorking = false;
 
 	if(argc != 2) 
 	{
@@ -35,12 +35,12 @@ int main(int argc, char *argv[])
 	// Fin du mécanicien à la récéption du signal SIGINT 
 	signal(SIGINT, endMecanicien); 
 
-	while(1) {
+	while(1) 
+	{
 
 	// Reçoit requête du chef d'atelier (travail a faire)
 		// requête ayant le nb d'outils par catégorie
 
-		isWorking = true;
 
 	// Réservation des outils (sémaphores)
 
@@ -52,7 +52,6 @@ int main(int argc, char *argv[])
 	// Envoie sa réponse au chef d'atelier (notification)
 
 
-		isWorking = false;
 	}
 
 }
