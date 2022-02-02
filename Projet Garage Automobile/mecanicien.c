@@ -32,11 +32,17 @@ int main(int argc, char *argv[])
 	// Convertion de l'argument en entier
 	numero_ordre = strtol(argv[1], NULL, 0);
 
+	printf("MECANICIEN_%d - Nouveau mécanicien ! \n", numero_ordre);
+
+
 	// Fin du mécanicien à la récéption du signal SIGINT 
 	signal(SIGINT, endMecanicien); 
 
+
+
 	while(1) 
 	{
+
 
 	// Reçoit requête du chef d'atelier (travail a faire)
 		// requête ayant le nb d'outils par catégorie
@@ -51,7 +57,8 @@ int main(int argc, char *argv[])
 
 	// Envoie sa réponse au chef d'atelier (notification)
 
-
 	}
 
+	endMecanicien();
+	
 }

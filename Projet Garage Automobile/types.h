@@ -1,4 +1,13 @@
 
+// structure utilisée pour stocker ce dont un client a besoin pour être créé
+typedef struct
+{
+	int client_num;
+	int nb_chefs;
+	int cles_ipc[];
+}
+donnees_client;
+
 typedef struct 
 {
 	long type;
@@ -20,6 +29,8 @@ reponse_ordre;
 
 
 #define FICHIER_CLE "./files_cle/cle.serv_"
+
+
 
 
 
