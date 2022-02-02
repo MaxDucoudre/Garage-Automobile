@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
 
 	// transmettre la requête au chef d'atelier le moins occupé et attendre qu'il soit disponnible
 	nb_lus = msgsnd(file_mess, &requete, sizeof(requete)-sizeof(long int), 0);
+	
 	printf("CLIENT - Envoi du message %d dans la file\n", nb_lus);
 
 

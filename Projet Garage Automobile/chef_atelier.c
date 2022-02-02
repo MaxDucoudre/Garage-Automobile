@@ -58,26 +58,30 @@ int main(int argc, char *argv[])
 
 	signal(SIGINT, endChefAtelier); 
 
+	// Permet de récupérer la clé de la file relié au chef d'atelier
 	key_t cle;
 	char fichier_cle[50];
 	char buffer[5];
-
 	sprintf(buffer, "%d", numero_ordre);
-	printf("SKU\n");
+	strcat(strcpy(fichier_cle, FICHIER_CLE), buffer); 
 
-	strcat(strcpy(fichier_cle, FICHIER_CLE), buffer); // CA VAS PAS
+	cle = ftok(fichier_cle, 'a');
+	int file_mess = msgget(cle, IPC_CREAT);
+	printf("CHEF_%d - Récupération de la clé %d et de la file %d\n", cle, file_mess);
 
 
-	printf("CHEF_%d - Fichier cle : %s\n Cle : %d\n",numero_ordre, fichier_cle, cle);
-
+	// variables
+	ssize_t nb_lus;
+	requete_garage requete;
 
 	while(1) {
 		// Récupération de la clé
-		cle = ftok(fichier_cle, 'a');
-		printf("CHEF_%d - Fichier cle : %s\n Cle : %d\n",numero_ordre, fichier_cle, cle);
 
 
 		// Attend/reçoit requête d'un client
+		nb_lus = msgrcv(file_mess, &requete, sizeof(requete)-sizeof(long int), 1, 0); // bloquant
+
+		printf("CHEF_%d - Récupération d'une requête : %d\n", requete.nb_outil_2);
 
 
 
