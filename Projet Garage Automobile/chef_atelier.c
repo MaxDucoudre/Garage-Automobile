@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
 	cle = ftok(fichier_cle, 'a');
 	int file_mess = msgget(cle, IPC_CREAT);
-	printf("CHEF_%d - Récupération de la clé %d et de la file %d\n", cle, file_mess);
+	printf("CHEF_%d - Récupération de la clé %d et de la file %d\n",numero_ordre, cle, file_mess);
 
 
 	// variables
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 		// Attend/reçoit requête d'un client
 		nb_lus = msgrcv(file_mess, &requete, sizeof(requete)-sizeof(long int), 1, 0); // bloquant
 
-		printf("CHEF_%d - Récupération d'une requête : %d\n", requete.nb_outil_2);
+		printf("CHEF_%d - Récupération d'une requête : %d\n",numero_ordre, requete.nb_outil_2);
 
 
 
