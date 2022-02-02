@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
 	for(i = 0; i < nb_chef_atelier; i++) 
 	{
 		cle_ipc_chef[i] = (int)strtol(argv[i+2],NULL,0);
+		printf("CLIENT - Clé IPC récupéré : : %d\n", cle_ipc_chef[i]);
 	}
 
 
