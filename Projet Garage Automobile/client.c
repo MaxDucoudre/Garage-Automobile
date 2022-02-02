@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 		if(isNumber(argv[i]) == 0) 
 		{
 
-			printf("Les arguments du client doivent être des entiers !\n");
+			printf("Les arguments du client doivent être des entiers ! (%s)\n", argv[i]);
 			return EXIT_FAILURE;
 		}
 	}
