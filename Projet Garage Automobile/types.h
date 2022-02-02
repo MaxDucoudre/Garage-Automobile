@@ -11,13 +11,12 @@ donnees_client;
 typedef struct 
 {
 	long type;
-	int numero_ordre;
 	int nb_outil_1;
 	int nb_outil_2;
 	int nb_outil_3;
 	int nb_outil_4;
 } 
-ordre;
+requete_garage;
 
 
 typedef struct 
@@ -25,7 +24,7 @@ typedef struct
 	long type;
 	int resu;
 } 
-reponse_ordre;
+reponse_garage;
 
 
 #define FICHIER_CLE "./files_cle/cle.serv_"

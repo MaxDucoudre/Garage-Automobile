@@ -22,7 +22,7 @@
 #include <pthread.h>
 
 
-#define NB_CLIENT_TO_CREATE 10
+#define NB_CLIENT_TO_CREATE 1
 
 int nb_file;
 

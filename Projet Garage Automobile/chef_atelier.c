@@ -1,13 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <sys/wait.h>
-#include <ctype.h>
-#include <unistd.h>
-
-
 #include "verif.h"
+#include "types.h"
 
+
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <signal.h>
+#include <assert.h>
+#include <string.h>
 
 
 // Fonction mettant fin au processus ched d'atelier proprement (a condition qu'il ait terminé )
@@ -53,9 +58,28 @@ int main(int argc, char *argv[])
 
 	signal(SIGINT, endChefAtelier); 
 
+	key_t cle;
+	char fichier_cle[50];
+	char buffer[5];
+
+	sprintf(buffer, "%d", numero_ordre);
+	printf("SKU\n");
+
+	strcat(strcpy(fichier_cle, FICHIER_CLE), buffer); // CA VAS PAS
+
+
+	printf("CHEF_%d - Fichier cle : %s\n Cle : %d\n",numero_ordre, fichier_cle, cle);
+
 
 	while(1) {
+		// Récupération de la clé
+		cle = ftok(fichier_cle, 'a');
+		printf("CHEF_%d - Fichier cle : %s\n Cle : %d\n",numero_ordre, fichier_cle, cle);
+
+
 		// Attend/reçoit requête d'un client
+
+
 
 		// Envoi requête au mécanicien (durée & outils nécéssaires dans chaque catégories)
 
