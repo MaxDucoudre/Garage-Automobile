@@ -126,7 +126,7 @@ void *createClient (void *args)
 	char nb_chef_str[3];
 	sprintf(nb_chef_str, "%d ", arg->nb_chefs);
 
-	char command[500];
+	char command[1000];
 	strcat(strcpy(command, "./client "), nb_chef_str);
 	
 	int i;
@@ -136,12 +136,13 @@ void *createClient (void *args)
 	{
 
 		sprintf(key_file_str, "%d ", arg->cles_ipc[i]);
-
+		printf("GARAGE - client creation... %d\n", key_file_str);
 		strcat(strcpy(command, command), key_file_str);
 
 	}
 
 	printf("GARAGE - Génération d'un nouveau CLIENT...\n");
+	printf("GARAGE - %s\n", command);
 	system(command);
 
 }
