@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
 	for(i = 0; i < nb_chef_atelier; i++) 
 	{
 		cle_ipc_chef[i] = (int)strtol(argv[i+2],NULL,0);
-		printf("CLIENT - Clé IPC récupéré : : %d\n", cle_ipc_chef[i]);
 	}
 
 
@@ -70,13 +69,13 @@ int main(int argc, char *argv[])
 	requete_garage requete;
 
 	// Séléction du chef le moins occupé :
-	key_t choosen_cle_ipc_chef = cle_ipc_chef[0]; // On prend le chef 0 
+	key_t choosen_cle_ipc_chef = cle_ipc_chef[0]; // On prend le chef 0 TODO
 	printf("CLIENT - Le client choisi le chef avec la clé de file IPC : %d\n", choosen_cle_ipc_chef);
 
 
 	// récupération de la file
 	int file_mess = msgget(choosen_cle_ipc_chef, IPC_CREAT);
-
+	
 	printf("CLIENT - Récéption de la file : %d\n", file_mess);
 
 

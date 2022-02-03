@@ -118,6 +118,7 @@ void *createMecanicien (void *args)
 
 
 // Fonction permettant de créer un client via un thread
+// Le clients a besoin du nombre de chef d'atelier et des files IPC
 void *createClient (void *thread_arg)
 {
 
@@ -129,25 +130,22 @@ void *createClient (void *thread_arg)
 
 	sprintf(nb_chef_str, "%d ", arg[0]);
 
-	char command[20 + sizeof(key_file_str)/sizeof(key_file_str[0])*arg[0]]; // le nombre de caractère de la commande dépend du nombre de chefs
+	char command[20 + sizeof(key_file_str)/sizeof(key_file_str[0])*(arg[0]+1)]; // le nombre de caractère de la commande dépend du nombre de chefs
 	strcat(strcpy(command, "./client "), nb_chef_str);
 	
 	int i;
 
-		printf("GARAGE - nb chefs :  %d\n", arg[0]);
 
-	for(i = 1; i < arg[0]+1; i++) 
+	for(i = 0; i < arg[0]; i++) 
 	{
 
-		sprintf(key_file_str, "%d ", arg[i]);
+		sprintf(key_file_str, "%d ", arg[i+1]);
 		//printf("GARAGE - client creation... %d\n", key_file_str);
-		printf("GARAGE - Clé d'un chef du client :  %d\n", arg[i]);
 		strcat(strcpy(command, command), key_file_str);
 
 	}
 
 	printf("GARAGE - Génération d'un nouveau CLIENT...\n");
-	printf("GARAGE - %s\n", command);
 	system(command);
 
 }
@@ -323,8 +321,8 @@ int main(int argc, char *argv[])
 
 	// le client vas également avoir besoin des clés pour accéder aus files IPC
 
-	for(i = 1; i < nb_chefs+1; i++) {
-		arguments_client[i] =cle_ipcs[i];
+	for(i = 0; i < nb_chefs; i++) {
+		arguments_client[i+1] = cle_ipcs[i];
 	}
 
 
