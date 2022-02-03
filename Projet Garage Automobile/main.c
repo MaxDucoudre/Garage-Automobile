@@ -118,25 +118,30 @@ void *createMecanicien (void *args)
 
 
 // Fonction permettant de créer un client via un thread
-void *createClient (void *args)
+void *createClient (void *thread_arg)
 {
 
-	donnees_client * arg =(donnees_client*)args;
+	int * arg =(int*)thread_arg;
 
-	char nb_chef_str[3];
-	sprintf(nb_chef_str, "%d ", arg->nb_chefs);
+	char key_file_str[20]; 
 
-	char command[1000];
+	char nb_chef_str[3]; 
+
+	sprintf(nb_chef_str, "%d ", arg[0]);
+
+	char command[20 + sizeof(key_file_str)/sizeof(key_file_str[0])*arg[0]]; // le nombre de caractère de la commande dépend du nombre de chefs
 	strcat(strcpy(command, "./client "), nb_chef_str);
 	
 	int i;
-	char key_file_str[20];
 
-	for(i = 0; i < arg->nb_chefs; i++) 
+		printf("GARAGE - nb chefs :  %d\n", arg[0]);
+
+	for(i = 1; i < arg[0]+1; i++) 
 	{
 
-		sprintf(key_file_str, "%d ", arg->cles_ipc[i]);
-		printf("GARAGE - client creation... %d\n", key_file_str);
+		sprintf(key_file_str, "%d ", arg[i]);
+		//printf("GARAGE - client creation... %d\n", key_file_str);
+		printf("GARAGE - Clé d'un chef du client :  %d\n", arg[i]);
 		strcat(strcpy(command, command), key_file_str);
 
 	}
@@ -279,12 +284,12 @@ int main(int argc, char *argv[])
 		// Génération d'une clé
 		cle = ftok(fichier_cle, 'a');
 		printf("GARAGE - cle : %d générée!\n", cle);
+		cle_ipcs[i] = cle; // stockage des clés pour les files IPC (nécéssaire au client)
 
 		// Création des objets IPC avec la clé générée
 		file_mess = msgget(cle, IPC_CREAT|0600);
 		printf("GARAGE - File de message : %d générée!\n", file_mess);
 
-		cle_ipcs[i] = cle; // stockage des clés pour les files IPC (nécéssaire au client)
 
 
 		// CREATION DES PROCESSUS CHEFS D'ATELIER (avec des threads))
@@ -312,15 +317,19 @@ int main(int argc, char *argv[])
 	int numero_client = 1;
 
 
-	donnees_client args_client; // Données néccésaires pour un client (struct donnees_client)
-	args_client.nb_chefs  = nb_chefs; // nombre de chefs d'atelier
-
+	 // Données néccésaires pour un client ()
+	int arguments_client[1+nb_chefs];
+	arguments_client[0] = nb_chefs;
 
 	// le client vas également avoir besoin des clés pour accéder aus files IPC
-	for(i = 0; i<nb_chefs; i++) 
-	{
-		args_client.cles_ipc[i] = cle_ipcs[i];
+
+	for(i = 1; i < nb_chefs+1; i++) {
+		arguments_client[i] =cle_ipcs[i];
 	}
+
+
+
+
 
 	pthread_t threads_client[NB_CLIENT_TO_CREATE];
 
@@ -331,8 +340,7 @@ int main(int argc, char *argv[])
 		{
 
 			// Création "infinie" de clients (prévoir de laisser un temps d'interval)
-			args_client.client_num = numero_client; // attribution d'un numéro à un client
-			pthread_create(&threads_client[i], NULL, createClient, &args_client);
+			pthread_create(&threads_client[i], NULL, (void *) createClient, &arguments_client);
 			numero_client++;
 		}
 

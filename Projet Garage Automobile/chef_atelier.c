@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 		// Attend/reçoit requête d'un client
 		nb_lus = msgrcv(file_mess, &requete, sizeof(requete)-sizeof(long int), 1, 0); // bloquant
 
-		printf("CHEF_%d - Récupération d'une requête : %d\n",numero_ordre, requete.nb_outil_2);
+		//printf("CHEF_%d - Récupération d'une requête : %d\n",numero_ordre, requete.nb_outil_2);
 
 
 
