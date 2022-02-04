@@ -19,7 +19,7 @@
 
 
 
-	int a_quel_point_le_chef_est_occupe;
+int a_quel_point_le_chef_est_occupe;
 
 
 // Fonction mettant fin au processus ched d'atelier proprement (a condition qu'il ait terminé )
@@ -30,12 +30,6 @@ void endChefAtelier() {
 
 	exit(EXIT_SUCCESS);
 }
-
-void recieveRequeteFromClient()
-{
-	a_quel_point_le_chef_est_occupe++;
-}
-
 
 
 int getMecaFile(int numero_orde_mecanicien) 
@@ -123,7 +117,6 @@ int main(int argc, char *argv[])
    	key_t cle_chef_meca;
    	ssize_t nb_lus;
 
-   	signal(SIGUSR1, recieveRequeteFromClient);
 
 	while(1) 
 	{

@@ -20,12 +20,14 @@
 #include <time.h>
 
 // Variables globale de mécanicien
-int sem_id;
+int file_mess;
+
 
 
 // Fonction mettant fin au processus mécanicien proprement (a condition qu'il ait terminé )
 void endMecanicien() {
-	// enlever processus & IPC
+
+	// Destruction de la file IPC
 
 	printf("\nFin du mécanicien\n");
 
@@ -45,25 +47,19 @@ int createMecanicienFile(int numero_ordre)
 
 	key_t cle_chef_meca;
 	int file_mess;
+	char buffer[256];
+	char fichier_cle[20];
 
-	char buffer[2];
-	char fichier_cle[40];
-	char command_create_file[40];
+	// Création d'un fichier tmp
+	sprintf(fichier_cle, "%s%d", FICHIER_CLE_MECA, numero_ordre);
+	sprintf(buffer, "touch %s", fichier_cle);
+	system(buffer); 
 
-	sprintf(buffer, "%d", numero_ordre);
-
-	strcat(strcpy(fichier_cle, FICHIER_CLE_MECA), buffer);
-
-	strcat(strcpy(command_create_file, "touch "), fichier_cle);
-	system(command_create_file); // J'utilise la commande touch pour créer les fichiers nécéssaires
-
-
+	// Création d'une nouvelle file de message (1 par mécanicien)
 	cle_chef_meca = ftok(fichier_cle, 'a');
 	file_mess = msgget(cle_chef_meca, IPC_CREAT|0600); // nouvelle file pour communiquer avec le mécanicien
 
-	printf("MECANICIEN_%d - Création d'une file ipc - Cle : %d & File_num : %d\n", numero_ordre, cle_chef_meca, file_mess);
-
-
+	printf("MECANICIEN_%d - Nouvelle file IPC %d \n", numero_ordre, file_mess);
 
 	return file_mess;
 }
@@ -91,11 +87,10 @@ int main(int argc, char *argv[])
 	signal(SIGINT, endMecanicien); 
 
 	key_t cle_chef_meca;
-   	int file_mess;
    	int nb_lus;
 
    	key_t sem_key = ftok(FICHIER_CLE_SEM, 1);
-   	sem_id = semget(sem_key, 1, 0600|IPC_CREAT|IPC_EXCL);;
+   	int sem_id = semget(sem_key, 1, 0600|IPC_CREAT|IPC_EXCL);;
 
    	struct sembuf p[3];
 
