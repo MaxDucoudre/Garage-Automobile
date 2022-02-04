@@ -8,15 +8,23 @@ typedef struct
 }
 donnees_client;
 
+
+
 typedef struct 
 {
 	long type;
-	int nb_outil_1;
-	int nb_outil_2;
-	int nb_outil_3;
-	int nb_outil_4;
 } 
 requete_garage;
+
+
+typedef struct 
+{
+	long type;
+	long nb_outil[4];
+
+} 
+requete_chef_vers_mecanicien;
+
 
 
 typedef struct 
@@ -26,9 +34,16 @@ typedef struct
 } 
 reponse_garage;
 
+typedef struct 
+{
+	long type;
+	int temps_seconde;
+} 
+notification;
 
-#define FICHIER_CLE "./files_cle/cle.serv_"
-
+#define FICHIER_CLE "./files_cle/cle.chef_"
+#define FICHIER_CLE_MECA "./files_cle/cle.meca_"
+#define FICHIER_CLE_SEM "./files_cle/cle.sem" 
 
 
 

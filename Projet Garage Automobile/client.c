@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 {
 	int i;
 	ssize_t nb_lus;
+	int choosen_chef_atelier_ordre;
 
 
 	// VERIFICATION DES ARGUMENTS
@@ -64,13 +65,17 @@ int main(int argc, char *argv[])
 	printf("CLIENT - Nouveau client!\n");
 
 
+	notification notif; // Notification que le client reçoit quand le travail est terminé
 
 	// Créer la requête
 	requete_garage requete;
+	requete.type = 1;
+
 
 	// Séléction du chef le moins occupé :
-	key_t choosen_cle_ipc_chef = cle_ipc_chef[0]; // On prend le chef 0 TODO
-	printf("CLIENT - Le client choisi le chef avec la clé de file IPC : %d\n", choosen_cle_ipc_chef);
+	choosen_chef_atelier_ordre = 0; // TODO
+	key_t choosen_cle_ipc_chef = cle_ipc_chef[choosen_chef_atelier_ordre]; // On prend le chef 0 TODO
+	printf("CLIENT - Le client choisi le CHEF_%d avec la clé de file IPC : %d\n", choosen_chef_atelier_ordre, choosen_cle_ipc_chef);
 
 
 	// récupération de la file
@@ -78,17 +83,20 @@ int main(int argc, char *argv[])
 	
 	printf("CLIENT - Récéption de la file : %d\n", file_mess);
 
-
 	// transmettre la requête au chef d'atelier le moins occupé et attendre qu'il soit disponnible
+	// via un signal
 	nb_lus = msgsnd(file_mess, &requete, sizeof(requete)-sizeof(long int), 0);
 
-	printf("CLIENT - Envoi du message %d dans la file\n", nb_lus);
+	printf("CLIENT - Envoi d'un signal au CHEF_%d\n", nb_lus, file_mess, choosen_chef_atelier_ordre);
 
 
 	// récupérer la réponse du chef d'atelier
+	nb_lus = msgrcv(file_mess, &notif, sizeof(notification)-sizeof(long int), 1, 0); // bloquant
 
 
 	// afficher le résultat
+	printf("CLIENT - Le client est satisfait après %d seconde(s) d'attente!", notif.temps_seconde);
+
 
 	return EXIT_SUCCESS;
 
