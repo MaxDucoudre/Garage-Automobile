@@ -35,8 +35,8 @@ int* cle_ipc_client_to_chef;
 int sem_id;
 
 
-pthread_t* meca_th;
-pthread_t* chef_th;
+pthread_t *threads_mecanicien;
+pthread_t *threads_chef;
 
 
 
@@ -67,11 +67,11 @@ void endProc()
 	// envoi de signaux aux autres processus pour qu'ils se ferment proprement
 	for(i = 0; i < nb_chefs; i++)
 	{
-		pthread_kill(chef_th[i], SIGINT); // envoyer un signal au processus chef
+		pthread_kill(threads_chef	[i], SIGINT); // envoyer un signal au processus chef
 	}
 	for(i = 0; i < nb_mecanicien; i++)
 	{
-		pthread_kill(meca_th[i], SIGINT); // envoyer un signal au processus mecanicien
+		pthread_kill(threads_mecanicien[i], SIGINT); // envoyer un signal au processus mecanicien
 	}
 }
 
@@ -79,7 +79,7 @@ void endProc()
 // fonction permettant de mettre fin au programme proprement
 void endGarage() {
 	printf("\nGARAGE - Début de la fermeture du garage...\n");
-	
+
 	endProc(); 	// Termine tous les thread qui ne se seraient pas fini)	
 	destroyIPCObject(); // Détruit tous les objets IPC 
 	eraseCleFiles(); // Suppression des fichiers de clé générées 
@@ -232,6 +232,7 @@ int main(int argc, char *argv[])
 	char buffer[2];
 	char fichier_cle[40];
 	char command_create_file[40];
+	char buffer_i[256];
 
 	// arguments qui vont passer dans les threads
 	int args_mecanicien[1]; // argument des mécaniciens
@@ -244,12 +245,12 @@ int main(int argc, char *argv[])
 	nb_file = nb_chefs; // nombre de file a créer
 
 	// Id de thread
-    pthread_t threads_chef[nb_chefs]; 
-    pthread_t threads_mecanicien[nb_mecanicien]; 
+    threads_chef[nb_chefs]; 
+    threads_mecanicien[nb_mecanicien]; 
 	pthread_t threads_client[NB_CLIENT_TO_CREATE];
 
-    meca_th = threads_mecanicien;
-    chef_th = threads_chef;
+	threads_mecanicien = (pthread_t*) malloc(nb_mecanicien * sizeof(pthread_t));
+    threads_chef = (pthread_t*) malloc(nb_chefs * sizeof(pthread_t));
 
 	// Signal de fin du programme
 	signal(SIGINT, endGarage); // le programme vas lancer la fonction endGarage à la récéption du signal SIGINT (CTRL+C)
@@ -289,12 +290,9 @@ int main(int argc, char *argv[])
 	{
 		// CREATION DES OBJETS IPCS
 		// Création de fichier pour stocker les clés des objets IPC
-		sprintf(buffer, "%d", i);
-		strcat(strcpy(fichier_cle, FICHIER_CLE), buffer);
-
-
-		strcat(strcpy(command_create_file, "touch "), fichier_cle);
-		system(command_create_file); // J'utilise la commande touch pour créer les fichiers nécéssaires
+		sprintf(fichier_cle, "FICHIER_CLE%d", i);
+		sprintf(buffer_i, "touch %s", fichier_cle);
+		system(buffer_i); // J'utilise la commande touch pour créer les fichiers nécéssaires
 
 		
 		// Génération d'une clé
@@ -311,16 +309,12 @@ int main(int argc, char *argv[])
 
 
 		// CREATION DES PROCESSUS CHEFS D'ATELIER (avec des threads))
-
 		args_chef[0] = i; // correspond à l'ordre d'un chef d'atelier
-
 		// Puis on lance un processus pour chaque chefs d'atelier
 		pthread_create(&threads_chef[i], NULL, createChefAtelier, &args_chef);
 
 
-
 		// CREATION DES PROCESSUS MECANICIENS (avec des threads)
-
 		// même principe que pour les chefs d'atelier
 		args_mecanicien[0] = i;
 		pthread_create(&threads_mecanicien[i], NULL, createMecanicien, &args_mecanicien);
