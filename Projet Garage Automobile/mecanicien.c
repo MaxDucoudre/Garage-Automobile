@@ -21,7 +21,7 @@
 
 // Variables globale de mécanicien
 int file_mess;
-
+int sem_id;
 
 
 // Fonction mettant fin au processus mécanicien proprement (a condition qu'il ait terminé )
@@ -35,10 +35,16 @@ void endMecanicien() {
 }
 
 
-int checkToolIsAvailable(int tool_num, int needed_tool) 
+int checkToolIsAvailable(int tool_num, int needed_tool, int actual_sem_value) 
 {
 
-	return 1;
+ 	if(actual_sem_value >= needed_tool) 
+ 	{
+
+
+ 		return 1;
+ 	}
+	return 0;
 
 }
 
@@ -68,7 +74,7 @@ int createMecanicienFile(int numero_ordre)
 int main(int argc, char *argv[])
 {
 	int numero_ordre;
-	int i;
+	int i, j;
 
 	if(argc != 2) 
 	{
@@ -90,9 +96,10 @@ int main(int argc, char *argv[])
    	int nb_lus;
 
    	key_t sem_key = ftok(FICHIER_CLE_SEM, 1);
-   	int sem_id = semget(sem_key, 1, 0600|IPC_CREAT|IPC_EXCL);;
+   	sem_id = semget(sem_key, 1, 0600|IPC_EXCL);;
 
-   	struct sembuf p[3];
+
+
 
    	notification notif;
    	notif.type = 1;
@@ -104,11 +111,15 @@ int main(int argc, char *argv[])
 	// Struct de la requete du chef d'atelier
 	requete_chef_vers_mecanicien requete_meca;
 
+	struct sembuf p[4];
+	struct sembuf v[4];
+
+	struct sembuf sembufP;
+	struct sembuf sembufV;
 
 	while(1) 
 	{
 		
-
 		// Reçoit requête du chef d'atelier (travail a faire) sur sa file
 			// requête ayant le nb d'outils par catégorie
 
@@ -118,20 +129,45 @@ int main(int argc, char *argv[])
 		// Réservation des outils (sémaphores)
 		printf("MECANICIEN_%d - Réservation des outils en cours...\n", numero_ordre);
 
+
+
+		for(i = 0; i<4; i++) 
+		{
+			sembufP.sem_num = i;
+			sembufP.sem_op = -requete_meca.nb_outil[i];
+			sembufP.sem_flg = 0;
+
+			p[i] = sembufP;
+				
+			sembufV.sem_num = i;
+			sembufV.sem_op = +requete_meca.nb_outil[i];
+			sembufV.sem_flg = 0;
+
+			v[i] = sembufP;
 			
+		}
+		semop(sem_id,p,0); // opération
+
+
+
+/*
 		for(i = 0; i < 4; i++) // pour les 4 sémaphores
 		{
-			//while(checkToolIsAvailable(i, requete_meca.nb_outil[i]) == 0) {} // Attend que les outils i se libèrent
+
+
+
+			int value = semctl(sem_id, i, GETVAL);
+
+			//while(checkToolIsAvailable(i, requete_meca.nb_outil[i], value) == 0) {} // Attend que les outils i se libèrent
 			// une fois libéré, on fait une opération sur le sémaphore.
+			
 			p->sem_num = i; // sémaphore numéro i
 			p->sem_op = -requete_meca.nb_outil[i]; // décrémentation en fonction de ce qu'a envoyé le chef d'atelier
 			p->sem_flg = 0;
+			
 			semop(sem_id,p,i); // opération
 		}
-
-
-
-
+*/
 
 
 		printf("MECANICIEN_%d - Travail en cours...\n", numero_ordre);
@@ -153,7 +189,11 @@ int main(int argc, char *argv[])
 		notif.temps_seconde = chrono;
 
 
+		semop(sem_id,v,0); // opération pour libérer les outils
+
+
 		// Envoie sa réponse au chef d'atelier (notification)
+
 		nb_lus = msgsnd(file_mess, &notif, sizeof(notification)-sizeof(long int), 0);
 		printf("MECANICIEN_%d - Travail terminé, notification envoyé au chef d'atelier.\n", numero_ordre);
 

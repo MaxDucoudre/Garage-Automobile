@@ -26,7 +26,7 @@
 #include <pthread.h>
 
 
-#define NB_CLIENT_TO_CREATE 1
+#define NB_CLIENT_TO_CREATE 5
 
 int nb_file;
 int nb_chefs;
@@ -51,13 +51,19 @@ void destroyIPCObject()
 	char buffer[256];
 
 	semctl(sem_id,0,IPC_RMID); // destruction sémaphore outils
+	semctl(sem_id,1,IPC_RMID); 
+	semctl(sem_id,2,IPC_RMID); 
+	semctl(sem_id,3,IPC_RMID); 
+
 
 	// Destruction des files client-chef
 	for(i = 0; i <nb_file; i ++)
 	{
-		sprintf(buffer, "ipcrm -m %d", cle_ipc_client_to_chef[i]);
-		system(buffer); 
+
+		semctl(cle_ipc_client_to_chef[i],0,IPC_RMID);
+
 	}
+
 }
 
 void endProc() 
@@ -67,8 +73,11 @@ void endProc()
 	// envoi de signaux aux autres processus pour qu'ils se ferment proprement
 	for(i = 0; i < nb_chefs; i++)
 	{
-		pthread_kill(threads_chef	[i], SIGINT); // envoyer un signal au processus chef
+		printf("PTHREAD %d", threads_chef[i]);
+
+		pthread_kill(threads_chef[i], SIGINT); // envoyer un signal au processus chef
 	}
+
 	for(i = 0; i < nb_mecanicien; i++)
 	{
 		pthread_kill(threads_mecanicien[i], SIGINT); // envoyer un signal au processus mecanicien
@@ -80,10 +89,10 @@ void endProc()
 void endGarage() {
 	printf("\nGARAGE - Début de la fermeture du garage...\n");
 
-	endProc(); 	// Termine tous les thread qui ne se seraient pas fini)	
 	destroyIPCObject(); // Détruit tous les objets IPC 
 	eraseCleFiles(); // Suppression des fichiers de clé générées 
-	
+	//endProc(); 	// Termine tous les thread qui ne se seraient pas fini)	
+
 	printf("GARAGE - Garage fermé, fin du programme!\n");
 	exit(EXIT_SUCCESS);
 }
@@ -95,17 +104,20 @@ void *createChefAtelier (void *args)
 {
 	int * arg =(int*)args; // Récupération des arguments du thread
 	char buffer[256];
+	
 	printf("GARAGE - Génération du CHEF_%d...\n", arg[0]);
 
 	sprintf(buffer, "./chef_atelier %d %d %d %d %d", arg[0], arg[1], arg[2], arg[3], arg[4]); // création de la commande
 	system(buffer); // lancement du chef d'atelier
 	
 	
-	/* Version avec exec, mais pas de suivi console
+	/* Version avec exec, mais pas de suivi console */
+	/*
 	sprintf(buffer, "%d %d %d %d %d", arg[0], arg[1], arg[2], arg[3], arg[4]);
-	printf("%s\n", buffer);
-	execl("./chef_atelier", "./chef_atelier", buffer);
+	printf("./chef_atelier %s\n", buffer);
+	execl("./chef_atelier", "./chef_atelier", ,buffer);
 	*/
+	
 
 	
 }
@@ -123,6 +135,13 @@ void *createMecanicien (void *args)
 	sprintf(buffer, "./mecanicien %d", arg[0]);
 	printf("GARAGE - Génération du MECANICIEN_%d...\n", arg[0]);
 	system(buffer);
+
+	/*
+	sprintf(buffer, "%d", arg[0]);
+	//printf("%s\n", buffer);
+	execl("./mecanicien", "./mecanicien", buffer);
+	*/
+
 }
 
 
@@ -130,7 +149,6 @@ void *createMecanicien (void *args)
 // Le clients a besoin du nombre de chef d'atelier et des files IPC
 void *createClient (void *thread_arg)
 {
-
 	int * arg =(int*)thread_arg;
 	int i;
 	char key_file_str[20]; 
@@ -243,12 +261,11 @@ int main(int argc, char *argv[])
 	nb_file = nb_chefs; // nombre de file a créer
 
 	// Id de thread
-    threads_chef[nb_chefs]; 
-    threads_mecanicien[nb_mecanicien]; 
+    
 	pthread_t threads_client[NB_CLIENT_TO_CREATE];
 
 	threads_mecanicien = (pthread_t*) malloc(nb_mecanicien * sizeof(pthread_t));
-    threads_chef = (pthread_t*) malloc(nb_chefs * sizeof(pthread_t));
+   threads_chef = (pthread_t*) malloc(nb_chefs * sizeof(pthread_t));
 
 	// Signal de fin du programme
 	signal(SIGINT, endGarage); // le programme vas lancer la fonction endGarage à la récéption du signal SIGINT (CTRL+C)
@@ -264,15 +281,17 @@ int main(int argc, char *argv[])
 
  	sem_key = ftok(FICHIER_CLE_SEM, 1);
  	sem_id = semget(sem_key, 4, 0666|IPC_CREAT|IPC_EXCL);
+ 	assert(sem_id >= 0);
  	semctl(sem_id, 0, SETVAL, nb_1);
  	semctl(sem_id, 1, SETVAL, nb_2);
  	semctl(sem_id, 2, SETVAL, nb_3);
  	semctl(sem_id, 3, SETVAL, nb_4);
 
 	int value;
-	int poop = semctl(sem_id, 0, GETVAL, nb_1);
-	printf("Value : %d %d \n", value, poop);
-
+	int value2;
+	value = semctl(sem_id, 0, GETVAL);
+	value2 = semctl(sem_id, 1, GETVAL);
+	printf("Value : %d %d\n", value, value2);
 
 
 		// données pour un chef d'atelier qui vont passer au thread
@@ -288,13 +307,14 @@ int main(int argc, char *argv[])
 	{
 		// CREATION DES OBJETS IPCS
 		// Création de fichier pour stocker les clés des objets IPC
-		sprintf(fichier_cle, "FICHIER_CLE%d", i);
+		sprintf(fichier_cle, "%s%d", FICHIER_CLE, i);
 		sprintf(buffer_i, "touch %s", fichier_cle);
 		system(buffer_i); // J'utilise la commande touch pour créer les fichiers nécéssaires
 
 		
+				cle = ftok(fichier_cle, 'a');
+
 		// Génération d'une clé
-		cle = ftok(fichier_cle, 'a');
 		printf("GARAGE - cle : %d générée!\n", cle);
 		cle_ipcs[i] = cle; // stockage des clés pour les files IPC (nécéssaire au client)
 
@@ -327,13 +347,15 @@ int main(int argc, char *argv[])
 	// INFORMATIONS NECESSAIRES POUR CREER UN CLIENT :
 
 	arguments_client[0] = nb_chefs;
+
 	// le client vas également avoir besoin des clés pour accéder aus files IPC
 	for(i = 0; i < nb_chefs; i++) {
 		arguments_client[i+1] = cle_ipcs[i];
 	}
 
-	while(1) { 
 
+	while(1) { 
+		sleep(1);
 		if(numero_client <= NB_CLIENT_TO_CREATE) 
 		{
 			// Création "infinie" de clients (prévoir de laisser un temps d'interval)

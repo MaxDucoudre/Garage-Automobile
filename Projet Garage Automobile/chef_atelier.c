@@ -36,12 +36,12 @@ int getMecaFile(int numero_orde_mecanicien)
 {
 	key_t cle_chef_meca;
 	int file_mess;
-	char fichier_cle[50];
+	char fichier_cle_meca[50];
 	char buffer[5];
 	sprintf(buffer, "%d", numero_orde_mecanicien);
-	strcat(strcpy(fichier_cle, FICHIER_CLE_MECA), buffer); 
+	strcat(strcpy(fichier_cle_meca, FICHIER_CLE_MECA), buffer); 
 
-	cle_chef_meca = ftok(fichier_cle, 'a');
+	cle_chef_meca = ftok(fichier_cle_meca, 'a');
 	file_mess = msgget(cle_chef_meca, IPC_CREAT|0600); // nouvelle file pour communiquer avec le mécanicien
 
 
@@ -89,9 +89,9 @@ int main(int argc, char *argv[])
 	// Permet de récupérer la clé de la file relié au chef d'atelier
 	key_t cle;
 	char fichier_cle[50];
-	char buffer[5];
-	sprintf(buffer, "%d", numero_ordre);
-	strcat(strcpy(fichier_cle, FICHIER_CLE), buffer); 
+
+	sprintf(fichier_cle, "%s%d", FICHIER_CLE, numero_ordre);
+
 
 	cle = ftok(fichier_cle, 'a');
 	int file_mess = msgget(cle, IPC_CREAT|0600);
@@ -136,6 +136,7 @@ int main(int argc, char *argv[])
 		requete_meca.nb_outil[1] = rand() % (nb_outil_2_max+1);
 		requete_meca.nb_outil[2] = rand() % (nb_outil_3_max+1);
 		requete_meca.nb_outil[3] = rand() % (nb_outil_4_max+1);
+
 
 		printf("CHEF_%d - Outils nécéssaire pour la tache demandée par le client : %d, %d, %d & %d\n", numero_ordre, requete_meca.nb_outil[0], requete_meca.nb_outil[1], requete_meca.nb_outil[2], requete_meca.nb_outil[3]);
 
