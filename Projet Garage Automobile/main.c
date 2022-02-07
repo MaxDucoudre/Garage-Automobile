@@ -94,7 +94,6 @@ void endGarage() {
 void *createChefAtelier (void *args)
 {
 	int * arg =(int*)args; // Récupération des arguments du thread
-
 	char buffer[256];
 	printf("GARAGE - Génération du CHEF_%d...\n", arg[0]);
 
@@ -103,7 +102,6 @@ void *createChefAtelier (void *args)
 	
 	
 	/* Version avec exec, mais pas de suivi console
-		
 	sprintf(buffer, "%d %d %d %d %d", arg[0], arg[1], arg[2], arg[3], arg[4]);
 	printf("%s\n", buffer);
 	execl("./chef_atelier", "./chef_atelier", buffer);
