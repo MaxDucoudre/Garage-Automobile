@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
-#include <semaphore.h>
+
 
 #include <signal.h>
 
@@ -33,6 +33,7 @@ int nb_chefs;
 int nb_mecanicien;
 int* cle_ipc_client_to_chef;
 int sem_id;
+int sem_id_chef;
 
 
 pthread_t *threads_mecanicien;
@@ -48,6 +49,7 @@ void eraseCleFiles() {
 void destroyIPCObject()
 {
 	int i;
+	int t;
 	char buffer[256];
 
 	semctl(sem_id,0,IPC_RMID); // destruction sémaphore outils
@@ -56,11 +58,18 @@ void destroyIPCObject()
 	semctl(sem_id,3,IPC_RMID); 
 
 
+	for(i = 0; i<nb_chefs; i++)
+	{
+		t = semctl(sem_id_chef, i, IPC_RMID);
+		assert(t = -1);
+	}
+
 	// Destruction des files client-chef
-	for(i = 0; i <nb_file; i ++)
+	for(i = 0; i <nb_chefs; i ++)
 	{
 
-		semctl(cle_ipc_client_to_chef[i],0,IPC_RMID);
+		t = msgctl(cle_ipc_client_to_chef[i],IPC_RMID, 0);
+		assert(t = -1);
 
 	}
 
@@ -241,6 +250,7 @@ int main(int argc, char *argv[])
 	int nb_3 = strtol(argv[5], NULL, 0);
 	int nb_4 = strtol(argv[6], NULL, 0);
 
+	key_t sem_key_chef;
 	key_t sem_key;
 	key_t cle;
 	int file_mess;
@@ -287,11 +297,30 @@ int main(int argc, char *argv[])
  	semctl(sem_id, 2, SETVAL, nb_3);
  	semctl(sem_id, 3, SETVAL, nb_4);
 
-	int value;
-	int value2;
-	value = semctl(sem_id, 0, GETVAL);
-	value2 = semctl(sem_id, 1, GETVAL);
-	printf("Value : %d %d\n", value, value2);
+
+
+
+	// semaphore stockant a quel point un cher d'atelier est occupé
+	char command_create_chef_sem_tmp[20];
+	sprintf(command_create_chef_sem_tmp, "touch %s", FICHIER_CLE_SEM_OCCUPATION);
+	system(command_create_chef_sem_tmp);
+
+	sem_key_chef = ftok(FICHIER_CLE_SEM_OCCUPATION, 1);
+
+	sem_id_chef = semget(sem_key_chef, nb_chefs, 066|IPC_CREAT|IPC_EXCL);
+		printf("GARAGE - Sémaphore pour chef d'atelier id : %d | clé : %d \n", sem_id_chef, sem_key_chef);
+		int value;
+	for(i = 0; i<nb_chefs; i++)
+	{
+		semctl(sem_id_chef,i, SETVAL, 0); 
+	 	value = semctl(sem_id_chef, i, GETVAL);
+		printf("Value : %d \n", value);
+
+	}
+
+
+
+
 
 
 		// données pour un chef d'atelier qui vont passer au thread

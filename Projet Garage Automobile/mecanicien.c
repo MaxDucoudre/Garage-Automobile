@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 		printf("MECANICIEN_%d - Réservation des outils en cours...\n", numero_ordre);
 
 
-
+		// Effectue les opérations sur les sémaphores pour allouer les outils nécéssaires
 		for(i = 0; i<4; i++) 
 		{
 			sembufP.sem_num = i;
@@ -146,28 +146,11 @@ int main(int argc, char *argv[])
 			v[i] = sembufP;
 			
 		}
-		semop(sem_id,p,0); // opération
+
+		semop(sem_id, p, 0); // opération
 
 
 
-/*
-		for(i = 0; i < 4; i++) // pour les 4 sémaphores
-		{
-
-
-
-			int value = semctl(sem_id, i, GETVAL);
-
-			//while(checkToolIsAvailable(i, requete_meca.nb_outil[i], value) == 0) {} // Attend que les outils i se libèrent
-			// une fois libéré, on fait une opération sur le sémaphore.
-			
-			p->sem_num = i; // sémaphore numéro i
-			p->sem_op = -requete_meca.nb_outil[i]; // décrémentation en fonction de ce qu'a envoyé le chef d'atelier
-			p->sem_flg = 0;
-			
-			semop(sem_id,p,i); // opération
-		}
-*/
 
 
 		printf("MECANICIEN_%d - Travail en cours...\n", numero_ordre);
@@ -179,14 +162,14 @@ int main(int argc, char *argv[])
 		{
 
 			// Pour chaque outils alloué, le mécanicien vas travailler 1 seconde
-			sleep(1);
+			sleep(1* requete_meca.nb_outil[i]);
 			
 		}
 
 		time_t msec_apres = time(NULL);
-
 		time_t chrono = msec_apres-msec_avant;
-		notif.temps_seconde = chrono;
+		notif.temps_seconde = chrono; // Récupération du chronomètre et du temps de travail du mécanicien
+
 
 
 		semop(sem_id,v,0); // opération pour libérer les outils

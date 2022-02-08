@@ -14,7 +14,51 @@
 #include <sys/msg.h>
 #include <signal.h>
 #include <assert.h>
+#include <sys/sem.h>
+#include <sys/shm.h>
 
+
+
+int choose_chef_atelier(int nb_chefs_atelier)
+{
+	int i;
+	int choosen_chef;
+	int occupation_chefs[nb_chefs_atelier];
+	key_t sem_key_chef = ftok(FICHIER_CLE_SEM_OCCUPATION, 1);
+	int sem_id_chef = semget(sem_key_chef, 0, 066|IPC_EXCL); // récupération du sémaphore contenant l'occupation des chefs :
+
+	for(i = 0; i< nb_chefs_atelier; i++)
+	{
+		occupation_chefs[i] =  semctl(sem_id_chef, i, GETVAL);
+	}
+
+	int location = 0;
+    int min = occupation_chefs[location];  
+
+
+  for (i = 1; i < nb_chefs_atelier; i++) {
+    if (occupation_chefs[i] < min) {
+      location = i;
+    }
+}
+
+
+
+    struct sembuf p[] = {{0,-1,0}, {1,-1,0}};
+    semop(sem_id_chef, p, location);
+
+	return location;
+}
+
+void free_chef_atelier(int chef_atelier_numero, int nb_chefs_atelier)
+{
+		key_t sem_key_chef = ftok(FICHIER_CLE_SEM_OCCUPATION, 1);
+		int sem_id_chef = semget(sem_key_chef, 0, 066|IPC_EXCL); // récupération du sémaphore contenant l'occupation des chefs :
+
+	    struct sembuf v[] = {{0,+1,0}, {1,+1,0}};
+    	semop(sem_id_chef, v, chef_atelier_numero);
+
+}
 
 
 int main(int argc, char *argv[])
@@ -71,20 +115,17 @@ int main(int argc, char *argv[])
 	requete_garage requete;
 	requete.type = 1;
 
-
 	// Séléction du chef le moins occupé :
-	choosen_chef_atelier_ordre = 0; // TODO
-	key_t choosen_cle_ipc_chef = cle_ipc_chef[choosen_chef_atelier_ordre]; // On prend le chef 0 TODO
+	choosen_chef_atelier_ordre = choose_chef_atelier(nb_chef_atelier); // cherche le numéro d'ordre du chef d'ateleir le moins occupé
+	key_t choosen_cle_ipc_chef = cle_ipc_chef[choosen_chef_atelier_ordre]; // On prend récupère sa clé
 	printf("CLIENT - Le client choisi le CHEF_%d avec la clé de file IPC : %d\n", choosen_chef_atelier_ordre, choosen_cle_ipc_chef);
 
 
 	// récupération de la file
 	int file_mess = msgget(choosen_cle_ipc_chef, IPC_CREAT);
-	
-	printf("CLIENT - Récéption de la file : %d\n", file_mess);
+	printf("CLIENT - Récéption de la file : %d du CHEF_%d\n", file_mess, choosen_chef_atelier_ordre);
 
-	// transmettre la requête au chef d'atelier le moins occupé et attendre qu'il soit disponnible
-	// via un signal
+	// transmettre la requête au chef d'atelier le moins occupé
 	nb_lus = msgsnd(file_mess, &requete, sizeof(requete)-sizeof(long int), 0);
 
 	printf("CLIENT - Envoi d'un signal au CHEF_%d\n", nb_lus, file_mess, choosen_chef_atelier_ordre);

@@ -20,7 +20,7 @@
 
 
 int a_quel_point_le_chef_est_occupe;
-
+key_t cle_chef_meca;
 
 // Fonction mettant fin au processus ched d'atelier proprement (a condition qu'il ait terminé )
 void endChefAtelier() {
@@ -34,16 +34,12 @@ void endChefAtelier() {
 
 int getMecaFile(int numero_orde_mecanicien) 
 {
-	key_t cle_chef_meca;
 	int file_mess;
 	char fichier_cle_meca[50];
-	char buffer[5];
-	sprintf(buffer, "%d", numero_orde_mecanicien);
-	strcat(strcpy(fichier_cle_meca, FICHIER_CLE_MECA), buffer); 
+	sprintf(fichier_cle_meca, "%s%d", FICHIER_CLE_MECA, numero_orde_mecanicien);
 
 	cle_chef_meca = ftok(fichier_cle_meca, 'a');
 	file_mess = msgget(cle_chef_meca, IPC_CREAT|0600); // nouvelle file pour communiquer avec le mécanicien
-
 
 	return file_mess;
 }

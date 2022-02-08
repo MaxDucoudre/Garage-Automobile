@@ -44,6 +44,7 @@ notification;
 #define FICHIER_CLE "./files_cle/cle.chef_"
 #define FICHIER_CLE_MECA "./files_cle/cle.meca_"
 #define FICHIER_CLE_SEM "./files_cle/cle.sem" 
+#define FICHIER_CLE_SEM_OCCUPATION "./files_cle/cle.occupation_sem" 
 
 
 
