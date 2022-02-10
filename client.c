@@ -24,7 +24,7 @@ int choose_chef_atelier(int nb_chefs_atelier)
 	int choosen_chef;
 	int occupation_chefs[nb_chefs_atelier];
 	key_t sem_key_chef = ftok(FICHIER_CLE_SEM_OCCUPATION, 1);
-	int sem_id_chef = semget(sem_key_chef, 0, 066|IPC_EXCL); // récupération du sémaphore contenant l'occupation des chefs :
+	int sem_id_chef = semget(sem_key_chef, 0, 0); // récupération du sémaphore contenant l'occupation des chefs :
 
 	for(i = 0; i< nb_chefs_atelier; i++)
 	{
@@ -52,7 +52,7 @@ int choose_chef_atelier(int nb_chefs_atelier)
 void free_chef_atelier(int chef_atelier_numero, int nb_chefs_atelier)
 {
 		key_t sem_key_chef = ftok(FICHIER_CLE_SEM_OCCUPATION, 1);
-		int sem_id_chef = semget(sem_key_chef, 0, 066|IPC_EXCL); // récupération du sémaphore contenant l'occupation des chefs :
+		int sem_id_chef = semget(sem_key_chef, 0, 0); // récupération du sémaphore contenant l'occupation des chefs :
 
 	    struct sembuf v[] = {{0,+1,0}, {1,+1,0}};
     	semop(sem_id_chef, v, chef_atelier_numero);
@@ -81,8 +81,6 @@ int main(int argc, char *argv[])
 	if(argc != nb_chef_atelier+2) 
 	{
 		couleur(ROUGE);
-				printf("./%s %s %s %s \n", argv[0],argv[1],argv[2],argv[3]);
-
 		printf("Vous devez avoir autant de clé que de chef d'atelier (%d)!\n", argc);
 		return EXIT_FAILURE;
 	}
@@ -100,7 +98,7 @@ int main(int argc, char *argv[])
 
 	// Sémaphores pour savoir le taux d'occupation d'un chef d'atelier
 	key_t sem_key_chef = ftok(FICHIER_CLE_SEM_OCCUPATION, 'a');
-	int sem_id_chef = semget(sem_key_chef, 0, 066|IPC_EXCL);
+	int sem_id_chef = semget(sem_key_chef, 0, 0);
 
 
 

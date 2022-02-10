@@ -1,5 +1,0 @@
-Clients -> contact le chef d'atelier le moins occupé et attend
-
-Chefs d'atelier -> recupère demande client et envoi au mécanicien | rédcupère la réponse du mécanicien et répercute sur le client
-
-Mécaniciens -> récupère demande du chef d'atelier et le prévient quand il a finit

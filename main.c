@@ -1,6 +1,4 @@
-
 #include <sys/wait.h>
-
 
 #include <string.h>
 #include <unistd.h>
@@ -13,7 +11,6 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 
-
 #include <signal.h>
 
 #include "types.h"
@@ -23,9 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <pthread.h>
-
-
 #define NB_CLIENT_TO_CREATE 10
 
 int nb_chefs;
@@ -33,8 +27,6 @@ int nb_mecanicien;
 key_t* cle_ipcs; // files IPC
 int sem_id; // Semaphore outils
 int sem_id_chef; // semaphore occupation chef d'atelier
-
-
 
 
 // fonction permettant de supprimer tous les fichiers temporaires générés par le programme
@@ -296,15 +288,12 @@ if(pid != 0) {
  	system(command_create_sem);
 
  	sem_key = ftok(FICHIER_CLE_SEM, 'a');
- 	sem_id = semget(sem_key, 4, 0666|IPC_CREAT|IPC_EXCL);
+ 	sem_id = semget(sem_key, 4, 0600|IPC_CREAT|IPC_EXCL);
 
  	semctl(sem_id, 0, SETVAL, nb_1);
  	semctl(sem_id, 1, SETVAL, nb_2);
  	semctl(sem_id, 2, SETVAL, nb_3);
  	semctl(sem_id, 3, SETVAL, nb_4);
-
-	int value;
-	value = semctl(sem_id, 0, GETVAL);
 
 
 
@@ -315,7 +304,7 @@ if(pid != 0) {
 
 
 	sem_key_chef = ftok(FICHIER_CLE_SEM_OCCUPATION, 'a');
-	sem_id_chef = semget(sem_key_chef, nb_chefs, 066|IPC_CREAT|IPC_EXCL);
+	sem_id_chef = semget(sem_key_chef, nb_chefs, 0600|IPC_CREAT|IPC_EXCL);
 
 	couleur(GRIS);
 	printf("GARAGE - Sémaphore pour les chefs d'atelier :  id = %d | clé = %d \n", sem_id_chef, sem_key_chef);
@@ -324,11 +313,6 @@ if(pid != 0) {
 	for(i = 0; i < nb_chefs; i++)
 	{
 		value2 = semctl(sem_id_chef, i, SETVAL, 0);
-
-	 	//value2 = semctl(sem_id_chef, i, GETVAL);
-
-		printf("Value of %d : %d \n", sem_id_chef, value2);
-
 	}
 
 
@@ -344,7 +328,9 @@ if(pid != 0) {
 
 	for(i = 0; i<nb_chefs; i++)
 	{
+
 		// CREATION DES OBJETS IPCS
+
 		// Création de fichier pour stocker les clés des objets IPC
 		sprintf(fichier_cle, "%s%d", FICHIER_CLE, i);
 		sprintf(buffer_i, "touch %s", fichier_cle);
@@ -358,11 +344,9 @@ if(pid != 0) {
 		cle_ipcs[i] = cle; // stockage des clés pour les files IPC (nécéssaire au client)
 
 		// Création des objets IPC avec la clé générée
-		file_mess = msgget(cle, IPC_CREAT|0600);
+		file_mess = msgget(cle, IPC_EXCL|IPC_CREAT|0600);
 		couleur(GRIS);
 		printf("GARAGE - File de message : %d générée!\n", file_mess);
-
-
 
 		// CREATION DES PROCESSUS CHEFS D'ATELIER 
 		args_chef[0] = i; // correspond à l'ordre d'un chef d'atelier
@@ -386,7 +370,6 @@ if(pid != 0) {
 	sleep(1);
 
 
-
 		// CREATION DES CLIENTS
 	// INFORMATIONS NECESSAIRES POUR CREER UN CLIENT :
 
@@ -401,7 +384,7 @@ if(pid != 0) {
 		if(numero_client <= NB_CLIENT_TO_CREATE) 
 		{
 			couleur(ROUGE);
-			printf("PID OF GARAGE %d\n", getpid());
+			//printf("PID OF GARAGE %d\n", getpid());
 				// Interval entre la création de client
 			sleep(rand() % 10);
 
