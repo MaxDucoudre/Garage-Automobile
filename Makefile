@@ -25,14 +25,14 @@ chef_atelier : chef_atelier.c types.h verif.o
 client : client.c types.h verif.o
 	$(CC) client.c -o client verif.o
 
-${RUNEXECNAME} : main.c types.h verif.o main.o
+${RUNEXECNAME} : main.c types.h verif.o
 	$(CC) main.c -o ${RUNEXECNAME} verif.o
 
 #
 # CONSTANTES
 #
 run :
-	./${RUNEXECNAME} 2 3 4 3 9 2
+	./${RUNEXECNAME} 2 3 2 3 2 2
 
 #
 # CLEAN

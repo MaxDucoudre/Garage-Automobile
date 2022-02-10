@@ -366,8 +366,6 @@ if(pid != 0) {
 		createMecanicien(args_mecanicien);
 	}
 
-	// On attend que chefs d'ateliers & les mécaniciens finissent de se préparer avant de lancer les client
-	sleep(1);
 
 
 		// CREATION DES CLIENTS
