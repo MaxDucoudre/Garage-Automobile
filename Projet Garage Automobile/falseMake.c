@@ -3,12 +3,11 @@
 
 int main(int argc, char const *argv[])
 {
-	
 	system("gcc verif.c -o verif.o -c");
 
 
 	system("gcc main.c -o main.o -c");
-	system("gcc -o garage main.o verif.o -pthread");
+	system("gcc -o garage main.o verif.o");
 
 	system("gcc client.c -o client.o -c");
 	system("gcc -o client client.o verif.o");

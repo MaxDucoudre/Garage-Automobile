@@ -144,8 +144,6 @@ int main(int argc, char *argv[])
 		printf("CHEF_%d - Outils nécéssaire pour la tache demandée par le client : %d, %d, %d & %d\n", numero_ordre, requete_meca.nb_outil[0], requete_meca.nb_outil[1], requete_meca.nb_outil[2], requete_meca.nb_outil[3]);
 
 
-
-
 		// séléction du mécanicien puis envois de la requête 
 		choosen_mecanicien = rand() % nb_mecanicien;
 		file_mess_meca = getMecaFile(choosen_mecanicien);
@@ -155,6 +153,7 @@ int main(int argc, char *argv[])
 
 
 		// attente de la fin du travail du mécanicien
+		printf("CHEF_%d - Attend qu'un mécanicien donne une réponse!\n", numero_ordre, nb_lus, choosen_mecanicien, notif.temps_seconde);
 		nb_lus = msgrcv(file_mess_meca, &notif, sizeof(notification)-sizeof(long int), 2, 0); // bloquant
 		couleur(JAUNE);
 		printf("CHEF_%d - Reçoit la réponse (%d) du MECANICIEN_%d qui a mit %d seconde(s)!\n", numero_ordre, nb_lus, choosen_mecanicien, notif.temps_seconde);

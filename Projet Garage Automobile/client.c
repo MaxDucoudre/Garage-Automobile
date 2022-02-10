@@ -80,8 +80,10 @@ int main(int argc, char *argv[])
 	// Le nombre d'argument dépend du nombre de chef d'atelier
 	if(argc != nb_chef_atelier+2) 
 	{
-		couleur(VERT);
-		printf("Vous devez avoir autant de clé que de chef d'atelier!\n");
+		couleur(ROUGE);
+				printf("./%s %s %s %s \n", argv[0],argv[1],argv[2],argv[3]);
+
+		printf("Vous devez avoir autant de clé que de chef d'atelier (%d)!\n", argc);
 		return EXIT_FAILURE;
 	}
 
@@ -90,7 +92,7 @@ int main(int argc, char *argv[])
 	{
 		if(isNumber(argv[i]) == 0) 
 		{
-			couleur(VERT);
+			couleur(ROUGE);
 			printf("Les arguments du client doivent être des entiers ! (%s)\n", argv[i]);
 			return EXIT_FAILURE;
 		}
@@ -143,13 +145,14 @@ int main(int argc, char *argv[])
 
 
 	// transmettre la requête au chef d'atelier le moins occupé
-	assert(msgsnd(file_mess, &requete, sizeof(requete)-sizeof(long int), 0) == -1);
+	assert(msgsnd(file_mess, &requete, sizeof(requete)-sizeof(long int), 0) != -1);
 	couleur(VERT);
 	printf("CLIENT - Envoi d'un signal au CHEF_%d\n", nb_lus, file_mess, choosen_chef_atelier_ordre);
 
 
 	// récupérer la réponse du chef d'atelier
-	assert(msgrcv(file_mess, &notif, sizeof(notification)-sizeof(long int), 2, 0) == -1); // bloquant
+	printf("CLIENT - Attend un signal du CHEF_%d\n", choosen_chef_atelier_ordre);
+	assert(msgrcv(file_mess, &notif, sizeof(notification)-sizeof(long int), 2, 0) != -1); // bloquant
 
 	// afficher le résultat
 	free_chef_atelier(choosen_chef_atelier_ordre, nb_chef_atelier);

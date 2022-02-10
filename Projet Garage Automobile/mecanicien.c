@@ -60,7 +60,7 @@ struct sembuf* getPsembuf(requete_chef_vers_mecanicien requete_meca)
 // Fonction mettant fin au processus mécanicien proprement (a condition qu'il ait terminé )
 void endMecanicien() {
 
-
+	couleur(CYAN);
 	printf("Le mécanicien %d finit son travail avant de se terminer... \n", getppid());
 
 	
@@ -69,7 +69,7 @@ void endMecanicien() {
 
 
 	// On attend que le mécanicien finit son travail
-
+	couleur(CYAN);
 	printf("Fin du mécanicien! %d\n", getppid());
 	exit(EXIT_SUCCESS);
 }
@@ -149,7 +149,8 @@ int main(int argc, char *argv[])
 		
 		// Reçoit requête du chef d'atelier (travail a faire) sur sa file
 		// requête ayant le nb d'outils par catégorie
-
+		couleur(CYAN);
+		printf("MECANICIEN_%d - Attend une requête\n", numero_ordre, requete_meca.nb_outil[0],requete_meca.nb_outil[1],requete_meca.nb_outil[2],requete_meca.nb_outil[3]);
 		nb_lus = msgrcv(file_mess, &requete_meca, sizeof(requete_meca)-sizeof(long int), 1, 0); 
 		couleur(CYAN);
 		printf("MECANICIEN_%d - Reçoit une requête et les outils %d,%d,%d & %d\n", numero_ordre, requete_meca.nb_outil[0],requete_meca.nb_outil[1],requete_meca.nb_outil[2],requete_meca.nb_outil[3]);

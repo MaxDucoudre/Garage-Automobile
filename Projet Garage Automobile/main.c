@@ -26,7 +26,7 @@
 #include <pthread.h>
 
 
-#define NB_CLIENT_TO_CREATE 1
+#define NB_CLIENT_TO_CREATE 10
 
 int nb_chefs;
 int nb_mecanicien;
@@ -58,16 +58,16 @@ void destroyIPCObject()
 	for(i = 0; i<nb_chefs; i++)
 	{
 		t = semctl(sem_id_chef, i, IPC_RMID);
-		assert(t == -1);
+		//assert(t != -1);
 	}
 
 	// Destruction des files client-chef
 	for(i = 0; i <nb_chefs; i ++)
 	{
-		file_mess = msgget(cle_ipcs[i], IPC_CREAT|0600);
+		file_mess = msgget(cle_ipcs[i], 0);
 		t = msgctl(file_mess, IPC_RMID, 0);
+		//assert(t != -1);
 
-		assert(t == -1);
 	}
 
 }
@@ -175,23 +175,37 @@ void *createClient (void *thread_arg)
 		char nb_chef_str[3]; 
 		char command[20 + sizeof(key_file_str)/sizeof(key_file_str[0])*(arg[0]+1)]; // le nombre de caractère de la commande dépend du nombre de chefs
 		
-		sprintf(command, "./client %d ", arg[0]);
+		//sprintf(command, "./client %d ", arg[0]);
+
+		sprintf(nb_chef_str, "%d", arg[0]);
+
+		//char argument_of_client[arg[0]+2][20];
+
+		char *argument_of_client[arg[0]+2];
+
+
+		argument_of_client[0] = "./client";
+		argument_of_client[1] = nb_chef_str;
+
 
 		for(i = 0; i < arg[0]; i++) 
 		{
-			sleep(rand() % 5);
-			sprintf(key_file_str, "%d ", arg[i+1]);
-			sprintf(command, "%s %d ", key_file_str);
 
-			strcat(strcpy(command, command), key_file_str);
+			sprintf(key_file_str, "%d", arg[i+1]);
+
+			argument_of_client[i+2] = key_file_str;
 
 		}
 
+			argument_of_client[i+3] = NULL;
+
+
 		couleur(GRIS);
 		printf("GARAGE - Génération d'un nouveau CLIENT...\n");
-		//execl("./client", "./client", command);
-		system(command);
+		execvp("./client", argument_of_client);
+		//system(command);
 	}
+
 }
 
 
@@ -311,7 +325,6 @@ if(pid != 0) {
 	{
 		value2 = semctl(sem_id_chef, i, SETVAL, 0);
 
-
 	 	//value2 = semctl(sem_id_chef, i, GETVAL);
 
 		printf("Value of %d : %d \n", sem_id_chef, value2);
@@ -351,13 +364,17 @@ if(pid != 0) {
 
 
 
-
-
 		// CREATION DES PROCESSUS CHEFS D'ATELIER 
 		args_chef[0] = i; // correspond à l'ordre d'un chef d'atelier
 		// Puis on lance un processus pour chaque chefs d'atelier
 		createChefAtelier(args_chef);
 
+
+	}
+
+
+	for(i = 0; i<nb_mecanicien; i++)
+	{
 
 		// CREATION DES PROCESSUS MECANICIENS 
 		// même principe que pour les chefs d'atelier
@@ -380,11 +397,14 @@ if(pid != 0) {
 		arguments_client[i+1] = cle_ipcs[i];
 	}
 
-
 	while(1) { 
-		sleep(1);
 		if(numero_client <= NB_CLIENT_TO_CREATE) 
 		{
+			couleur(ROUGE);
+			printf("PID OF GARAGE %d\n", getpid());
+				// Interval entre la création de client
+			sleep(rand() % 10);
+
 			// Création "infinie" de clients (prévoir de laisser un temps d'interval)
 			createClient(arguments_client);
 			numero_client++;
@@ -393,8 +413,8 @@ if(pid != 0) {
 	}
 
 	couleur(GRIS);
-	printf("GARAGE - Le nombre maximale de client à été atteind...");
+	printf("GARAGE - Le nombre maximale de client à été atteint...");
 	endGarage();
-}
+	}
 }
 
