@@ -19,14 +19,18 @@
 
 
 
-int a_quel_point_le_chef_est_occupe;
 key_t cle_chef_meca;
-
+int isWorking;
 // Fonction mettant fin au processus ched d'atelier proprement (a condition qu'il ait terminé )
 void endChefAtelier() {
 	// enlever processus & IPC
+	couleur(JAUNE);
+	printf("Le chef d'atelier finit sa tache avant de se terminer...\n");
 
-	printf("\nFin du chef d'atelier\n");
+
+	//while(isWorking == 1){}
+	couleur(JAUNE);
+	printf("Fin du chef d'atelier !\n");
 
 	exit(EXIT_SUCCESS);
 }
@@ -44,40 +48,42 @@ int getMecaFile(int numero_orde_mecanicien)
 	return file_mess;
 }
 
+
 int main(int argc, char *argv[])
 {
 
-	a_quel_point_le_chef_est_occupe = 0;
-
 	// VERIFICATION DES ARGUMENTS
-	if(argc != 6) 
-	{
+	if(argc != 7) 
+	{	
+		couleur(JAUNE);
 		printf("Chef d'atelier incorrect (%d)!\n", argc);
 
 		return EXIT_FAILURE;
 	}
 
 	int i;
+
 	for(i = 1; i < argc; i++)
 	{
 		if(isNumber(argv[i]) == 0) 
 		{
+			couleur(JAUNE);
 			printf("Il faut mettre des entiers en arguments du chef d'atelier!\n");
 			return EXIT_FAILURE;
 		}
 	}
 
 	// FIN VERIFICATION DES ARGUMENTS
-
+	isWorking = 0;
 	// Convertion des arguments en entiersé	
 	int numero_ordre = strtol(argv[1], NULL, 0);
 	int nb_outil_1_max = strtol(argv[2], NULL, 0); 
 	int nb_outil_2_max = strtol(argv[3], NULL, 0);
 	int nb_outil_3_max = strtol(argv[4], NULL, 0);
 	int nb_outil_4_max = strtol(argv[5], NULL, 0);
+	int nb_mecanicien = strtol(argv[6], NULL, 0);
 
-	printf("CHEF_%d - outils max %d, %d, %d & %d!\n", numero_ordre,  nb_outil_1_max, nb_outil_2_max,nb_outil_3_max, nb_outil_4_max);
-
+	couleur(JAUNE);
 	printf("CHEF_%d - Nouveau chef d'atelier !\n", numero_ordre);
 
 	signal(SIGINT, endChefAtelier); 
@@ -96,6 +102,7 @@ int main(int argc, char *argv[])
 	int file_mess_meca;
 	int choosen_mecanicien;
 
+	couleur(JAUNE);
 	printf("CHEF_%d - Récupération de la clé %d et de la file %d\n",numero_ordre, cle, file_mess);
 
 	// variables
@@ -116,13 +123,13 @@ int main(int argc, char *argv[])
 
 	while(1) 
 	{
-
-
 		// Attend/reçoit requête d'un client
+		couleur(JAUNE);
 		printf("CHEF_%d - En attente de requête client...\n", numero_ordre);
 		nb_lus = msgrcv(file_mess, &requete_client, sizeof(requete_client)-sizeof(long int), 1, 0); // bloquant
+		isWorking = 1;
 
-
+		couleur(JAUNE);
 		printf("CHEF_%d - Récupération d'une requête à la file %d\n", numero_ordre, file_mess);
 
 
@@ -132,29 +139,32 @@ int main(int argc, char *argv[])
 		requete_meca.nb_outil[1] = rand() % (nb_outil_2_max+1);
 		requete_meca.nb_outil[2] = rand() % (nb_outil_3_max+1);
 		requete_meca.nb_outil[3] = rand() % (nb_outil_4_max+1);
-
-
+		
+		couleur(JAUNE);
 		printf("CHEF_%d - Outils nécéssaire pour la tache demandée par le client : %d, %d, %d & %d\n", numero_ordre, requete_meca.nb_outil[0], requete_meca.nb_outil[1], requete_meca.nb_outil[2], requete_meca.nb_outil[3]);
 
 
 
 
-		// séléction du mécanicien puis envois de la requête TODO
-		choosen_mecanicien = 0;
+		// séléction du mécanicien puis envois de la requête 
+		choosen_mecanicien = rand() % nb_mecanicien;
 		file_mess_meca = getMecaFile(choosen_mecanicien);
 		nb_lus = msgsnd(file_mess_meca, &requete_meca, sizeof(requete_meca)-sizeof(long int), 0);
+		couleur(JAUNE);
 		printf("CHEF_%d - Envoi une requête (%d) au MECANICIEN_%d sur la file %d!\n", numero_ordre, nb_lus, choosen_mecanicien, file_mess_meca);
 
 
 		// attente de la fin du travail du mécanicien
-		nb_lus = msgrcv(file_mess_meca, &notif, sizeof(notification)-sizeof(long int), 1, 0); // bloquant
+		nb_lus = msgrcv(file_mess_meca, &notif, sizeof(notification)-sizeof(long int), 2, 0); // bloquant
+		couleur(JAUNE);
 		printf("CHEF_%d - Reçoit la réponse (%d) du MECANICIEN_%d qui a mit %d seconde(s)!\n", numero_ordre, nb_lus, choosen_mecanicien, notif.temps_seconde);
 
 
 		// notification du résultat de la requête au client
 		nb_lus = msgsnd(file_mess, &notif, sizeof(notification)-sizeof(long int), 0);
+		couleur(JAUNE);
 		printf("CHEF_%d - Envoi de la notification (%d) au client!\n", numero_ordre, nb_lus);
-
+		isWorking = 0;
 	}
 
 	endChefAtelier();

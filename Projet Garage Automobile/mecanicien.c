@@ -22,31 +22,58 @@
 // Variables globale de mécanicien
 int file_mess;
 int sem_id;
+int isWorking;
+
+
+struct sembuf* getVsembuf(requete_chef_vers_mecanicien requete_meca)
+{
+		struct sembuf *v = malloc(sizeof(struct sembuf)*4);
+		int i;
+		for(i = 0; i < 4; i++)
+		{
+			v[i].sem_num = i;
+			v[i].sem_op = -requete_meca.nb_outil[i];
+			v[i].sem_flg = 0;
+		}	
+
+
+		return v;
+}
+
+struct sembuf* getPsembuf(requete_chef_vers_mecanicien requete_meca)
+{
+		struct sembuf *p = malloc(sizeof(struct sembuf)*4);
+		int i;
+		for(i = 0; i < 4; i++)
+		{
+			p[i].sem_num = i;
+			p[i].sem_op = +requete_meca.nb_outil[i];
+			p[i].sem_flg = 0;
+		}	
+
+
+		return p;
+
+}
 
 
 // Fonction mettant fin au processus mécanicien proprement (a condition qu'il ait terminé )
 void endMecanicien() {
 
-	// Destruction de la file IPC
 
-	printf("\nFin du mécanicien\n");
+	printf("Le mécanicien %d finit son travail avant de se terminer... \n", getppid());
 
+	
+	// Destruction de la file IPC (mécanicien-chef)
+	msgctl(file_mess, IPC_RMID, 0);
+
+
+	// On attend que le mécanicien finit son travail
+
+	printf("Fin du mécanicien! %d\n", getppid());
 	exit(EXIT_SUCCESS);
 }
 
-
-int checkToolIsAvailable(int tool_num, int needed_tool, int actual_sem_value) 
-{
-
- 	if(actual_sem_value >= needed_tool) 
- 	{
-
-
- 		return 1;
- 	}
-	return 0;
-
-}
 
 int createMecanicienFile(int numero_ordre) 
 {
@@ -65,6 +92,7 @@ int createMecanicienFile(int numero_ordre)
 	cle_chef_meca = ftok(fichier_cle, 'a');
 	file_mess = msgget(cle_chef_meca, IPC_CREAT|0600); // nouvelle file pour communiquer avec le mécanicien
 
+	couleur(CYAN);
 	printf("MECANICIEN_%d - Nouvelle file IPC %d \n", numero_ordre, file_mess);
 
 	return file_mess;
@@ -75,9 +103,12 @@ int main(int argc, char *argv[])
 {
 	int numero_ordre;
 	int i, j;
-
+	int value;
+	isWorking = 0;
 	if(argc != 2) 
 	{
+
+		couleur(CYAN);
 		printf("Mécanicien incorrect!\n");
 
 		return EXIT_FAILURE;
@@ -86,6 +117,7 @@ int main(int argc, char *argv[])
 	// Convertion de l'argument en entier
 	numero_ordre = strtol(argv[1], NULL, 0);
 
+	couleur(CYAN);
 	printf("MECANICIEN_%d - Nouveau mécanicien ! \n", numero_ordre);
 
 
@@ -96,65 +128,49 @@ int main(int argc, char *argv[])
    	int nb_lus;
 
    	key_t sem_key = ftok(FICHIER_CLE_SEM, 1);
-   	sem_id = semget(sem_key, 1, 0600|IPC_EXCL);;
-
-
+   	sem_id = semget(sem_key, 0, 0600|IPC_EXCL);;
 
 
    	notification notif;
-   	notif.type = 1;
+   	notif.type = 2;
 
-   	sleep(1);
 
 	file_mess = createMecanicienFile(numero_ordre);
 
 	// Struct de la requete du chef d'atelier
 	requete_chef_vers_mecanicien requete_meca;
 
-	struct sembuf p[4];
-	struct sembuf v[4];
+	struct sembuf *p;
+	struct sembuf *v;
 
-	struct sembuf sembufP;
-	struct sembuf sembufV;
 
 	while(1) 
 	{
 		
 		// Reçoit requête du chef d'atelier (travail a faire) sur sa file
-			// requête ayant le nb d'outils par catégorie
+		// requête ayant le nb d'outils par catégorie
 
 		nb_lus = msgrcv(file_mess, &requete_meca, sizeof(requete_meca)-sizeof(long int), 1, 0); 
+		couleur(CYAN);
 		printf("MECANICIEN_%d - Reçoit une requête et les outils %d,%d,%d & %d\n", numero_ordre, requete_meca.nb_outil[0],requete_meca.nb_outil[1],requete_meca.nb_outil[2],requete_meca.nb_outil[3]);
 
+		isWorking = 1;
+
 		// Réservation des outils (sémaphores)
+		couleur(CYAN);
 		printf("MECANICIEN_%d - Réservation des outils en cours...\n", numero_ordre);
 
+		// prépare les opérations nécéssaire sur les sémaphores pour réserver les outils
+		p = getVsembuf(requete_meca);
+		v = getPsembuf(requete_meca);
 
-		// Effectue les opérations sur les sémaphores pour allouer les outils nécéssaires
-		for(i = 0; i<4; i++) 
-		{
-			sembufP.sem_num = i;
-			sembufP.sem_op = -requete_meca.nb_outil[i];
-			sembufP.sem_flg = 0;
-
-			p[i] = sembufP;
-				
-			sembufV.sem_num = i;
-			sembufV.sem_op = +requete_meca.nb_outil[i];
-			sembufV.sem_flg = 0;
-
-			v[i] = sembufP;
-			
-		}
-
-		semop(sem_id, p, 0); // opération
+		semop(sem_id, p, 1); // opération de retrait des outils
 
 
 
-
-
+		// Réalise le travail demandé (via sleep)
+		couleur(CYAN);
 		printf("MECANICIEN_%d - Travail en cours...\n", numero_ordre);
-		// Réalise le travail demandé (via usleep)
 
 		time_t msec_avant = time(NULL);
 
@@ -174,12 +190,12 @@ int main(int argc, char *argv[])
 
 		semop(sem_id,v,0); // opération pour libérer les outils
 
-
 		// Envoie sa réponse au chef d'atelier (notification)
 
 		nb_lus = msgsnd(file_mess, &notif, sizeof(notification)-sizeof(long int), 0);
+		couleur(CYAN);
 		printf("MECANICIEN_%d - Travail terminé, notification envoyé au chef d'atelier.\n", numero_ordre);
-
+		isWorking = 0;
 
 
 	}
