@@ -1,7 +1,11 @@
-# ASRProjetGarage
+# Projet Garage Automobile
+
+## Domaine : Architectures, Systèmes et Réseaux
+
+Programme multi-processus sumilant le fonctionnement d'un garage en manipulant des objets IPC 
+
 
 Projet d'ASR : Garage & objets IPC
-
 
 * Max Ducoudré (G.3)
 * Killian Cassaca (G.3)
